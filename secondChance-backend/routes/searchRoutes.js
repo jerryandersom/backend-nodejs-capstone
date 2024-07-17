@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const connectToDatabase = require('../models/db');
+require('dotenv').config();
 
 // Search for gifts
 router.get('/', async (req, res, next) => {
     try {
         // Task 1: Connect to MongoDB using connectToDatabase database.
         const db = await connectToDatabase();
-        const collection = db.collection("secondChanceItems");
+        const collection = db.collection(process.env.MONGO_COLLECTION);
 
         // Initialize the query object
         let query = {};
@@ -30,9 +31,8 @@ router.get('/', async (req, res, next) => {
 
         console.log("My query: ", query);
         // Task 4: Fetch filtered gifts using the find(query) method
-        let items = await collection.find(query).toArray();
-        console.log("My searched items: ", items);
-        res.json(items);
+        const gifts = await collection.find(query).toArray();
+        res.json(gifts);
     } catch (e) {
         next(e);
     }
