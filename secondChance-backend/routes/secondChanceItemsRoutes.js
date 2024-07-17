@@ -5,6 +5,7 @@ const fs = require('fs');
 const router = express.Router();
 const connectToDatabase = require('../models/db');
 const logger = require('../logger');
+const { ObjectId } = require('mongodb');
 
 // Define the upload directory path
 const directoryPath = 'public/images';
@@ -76,7 +77,6 @@ router.post('/', upload.single('file'), async (req, res, next) => {
 });
 
 // Get a single secondChanceItem by ID
-const { ObjectId } = require('mongodb'); // Make sure to require ObjectId from mongodb
 
 router.get('/:id', async (req, res, next) => {
     try {
@@ -88,11 +88,13 @@ router.get('/:id', async (req, res, next) => {
 
         // Step 4: task 3 - insert code here
         const id = req.params.id;
-        if (!ObjectId.isValid(id)) {
+
+        // If the ID format check is needed, it should match the format of the `id` in your document, not the MongoDB ObjectId
+        if (!/^\d+$/.test(id)) { // Check if id is numeric string
             return res.status(400).send("Invalid ID format");
         }
 
-        const secondChanceItem = await collection.findOne({ _id: new ObjectId(id) });
+        const secondChanceItem = await collection.findOne({ id });
 
         // Step 4: task 4 - insert code here
         if (!secondChanceItem) {
@@ -115,7 +117,11 @@ router.put('/:id', upload.single('image'), async (req, res, next) => {
         const collection = db.collection('secondChanceItems');
 
         // Step 5: task 3 - insert code here
-        const secondChanceItem = await collection.findOne({ _id: new ObjectId(id) });
+        const id = req.params.id;
+        if (!/^\d+$/.test(id)) { // Check if id is numeric string
+            return res.status(400).send("Invalid ID format");
+        }
+        const secondChanceItem = await collection.findOne({ id });
 
         if (!secondChanceItem) {
             logger.error('secondChanceItem not found');
@@ -130,7 +136,7 @@ router.put('/:id', upload.single('image'), async (req, res, next) => {
         secondChanceItem.updatedAt = new Date();
 
         const updatepreloveItem = await collection.findOneAndUpdate(
-            { _id: new MongoClient.ObjectID(req.params.id) },
+            { id },
             { $set: secondChanceItem },
             { returnDocument: 'after' }
         );
@@ -161,19 +167,20 @@ router.delete('/:id', async (req, res, next) => {
         const collection = db.collection('secondChanceItems');
 
         // Step 6: task 3 - insert code here
+        const id = req.params.id;
         // const result = await collection.deleteOne({ _id: new MongoClient.ObjectID(req.params.id) });
-        const secondChanceItem = await collection.findOne({ _id: new MongoClient.ObjectID(req.params.id) });
+        const secondChanceItem = await collection.findOne({ id });
 
         if (!secondChanceItem) {
             logger.error('secondChanceItem not found');
             return res.status(404).json({ error: "secondChanceItem not found" });
         }
 
-        await collection.deleteOne({ _id: new MongoClient.ObjectID(req.params.id) });
+        await collection.deleteOne({ id });
         res.json({ "deleted": "success" });
 
         // Step 6: task 4 - insert code here
-        res.json(result);
+        // res.json(result);
     } catch (e) {
         next(e);
     }
