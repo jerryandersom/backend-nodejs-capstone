@@ -45,7 +45,7 @@ const searchRoutes = require('./routes/searchRoutes');
 app.use('/api/secondchance/search', searchRoutes);
 
 app.use(pinoHttp({ logger }));
-
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
 // Use Routes
 // authRoutes Step 2: add the authRoutes and to the server by using the app.use() method.
 //{{insert code here}}
